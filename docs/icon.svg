@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- App icon: a sheet of engineering graph paper with the RV-12 in plan view, matching the splash.
+       The rounded square is 824 px inside the 1024 canvas, the macOS icon grid. -->
+  <defs>
+    <clipPath id="tile"><rect x="100" y="100" width="824" height="824" rx="184"/></clipPath>
+    <pattern id="minor" width="32" height="32" patternUnits="userSpaceOnUse" x="100" y="100">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(96,130,170,0.16)" stroke-width="2"/>
+    </pattern>
+    <pattern id="major" width="128" height="128" patternUnits="userSpaceOnUse" x="100" y="100">
+      <path d="M 128 0 L 0 0 0 128" fill="none" stroke="rgba(96,130,170,0.32)" stroke-width="3"/>
+    </pattern>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#000" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <rect x="100" y="100" width="824" height="824" rx="184" fill="#fbfbf8"/>
+  </g>
+  <g clip-path="url(#tile)">
+    <rect x="100" y="100" width="824" height="824" fill="url(#minor)"/>
+    <rect x="100" y="100" width="824" height="824" fill="url(#major)"/>
+  </g>
+  <!-- RV-12 plan view, same geometry as the splash drawing, scaled 1.36 and centred -->
+  <g transform="translate(512 512) scale(1.36) translate(-300 -212)" fill="none" stroke="#2b3038" stroke-width="15" stroke-linecap="round" stroke-linejoin="round">
+    <!-- wings -->
+    <path d="M 266 150 L 52 150 Q 40 150 40 162 L 40 230 Q 40 242 52 242 L 266 242"/>
+    <path d="M 334 150 L 548 150 Q 560 150 560 162 L 560 230 Q 560 242 548 242 L 334 242"/>
+    <!-- fuselage, filled so it sits on top of the wing and grid -->
+    <path d="M 300 15 C 318 15 330 40 332 80 L 334 160 C 334 240 322 330 314 395 L 286 395 C 278 330 266 240 266 160 L 268 80 C 270 40 282 15 300 15 Z" fill="#fbfbf8"/>
+    <path d="M 268 80 L 332 80"/>
+    <!-- canopy -->
+    <path d="M 300 95 C 316 95 326 115 328 140 L 328 196 L 272 196 L 272 140 C 274 115 284 95 300 95 Z"/>
+    <path d="M 272 140 L 328 140"/>
+    <!-- stabilator -->
+    <path d="M 200 340 L 400 340 L 400 370 Q 400 376 394 376 L 206 376 Q 200 376 200 370 Z" fill="#fbfbf8"/>
+    <!-- spinner and propeller -->
+    <path d="M 300 5 L 300 15 M 236 9 L 364 9"/>
+    <!-- centreline on top of the drawing, in Van's red -->
+    <path d="M 300 -12 L 300 436" stroke="#b8322c" stroke-width="6" stroke-dasharray="28 12 5 12"/>
+  </g>
+</svg>

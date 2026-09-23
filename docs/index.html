@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Van's Builder Assistant</title>
+<meta name="description" content="A desktop app for building a Van's kit plane: import the manuals, track every step, keep notes, ask questions about any step or drawing, search everything. RV-12iS supported today. Your data stays on your computer.">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f5f6f3;
+    --grid-minor: rgba(96, 130, 170, 0.14);
+    --grid-major: rgba(96, 130, 170, 0.30);
+    --ink: #22262c;
+    --ink-2: #5b6470;
+    --line: #9aa6b4;
+    --red: #b8322c;
+    --red-ink: #ffffff;
+    --white: #fbfbf8;
+    --focus: #2f5fb3;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--grid-major) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+      linear-gradient(var(--grid-minor) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
+    background-size: 128px 128px, 128px 128px, 32px 32px, 32px 32px;
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.55;
+  }
+  a { color: inherit; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+  img { max-width: 100%; height: auto; }
+
+  .sheet { max-width: 1040px; margin: 0 auto; padding: 56px 24px 40px; }
+
+  /* Header: icon and name, set like the drawing title in a Van's header band. */
+  .head { display: flex; align-items: center; gap: 18px; margin-bottom: 44px; }
+  .head img { width: 64px; height: 64px; flex: none; }
+  .head h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+  .head p { margin: 2px 0 0; color: var(--ink-2); font-size: 15px; }
+
+  .lede {
+    max-width: 24em;
+    margin: 0 0 14px;
+    font-size: clamp(30px, 4.6vw, 46px);
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+  }
+  .sub { margin: 0 0 32px; max-width: 36em; font-size: 19px; color: var(--ink-2); }
+
+  /* Kit support callout: set like a manual NOTE block, before the downloads. */
+  .callout {
+    display: flex; gap: 12px; align-items: baseline;
+    max-width: 44em; margin: 0 0 20px;
+    padding: 10px 14px 11px;
+    border: 1.5px solid var(--ink); border-left-width: 6px;
+    background: var(--white);
+    font-size: 15px; line-height: 1.45;
+  }
+  .callout b { font-family: var(--mono); font-size: 12.5px; font-weight: 500; color: var(--red); flex: none; }
+
+  /* Downloads */
+  .downloads { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+  .dl {
+    display: inline-flex; flex-direction: column; gap: 1px;
+    padding: 11px 18px 12px;
+    border: 1.5px solid var(--ink); border-radius: 6px;
+    background: var(--white); color: var(--ink);
+    text-decoration: none; font-weight: 500; line-height: 1.25; min-width: 200px;
+  }
+  .dl small { font-weight: 400; font-size: 13px; color: var(--ink-2); }
+  .dl.primary { background: var(--red); border-color: var(--red); color: var(--red-ink); }
+  .dl.primary small { color: rgba(255, 255, 255, 0.82); }
+  .dl:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .dl-note b { font-weight: 500; color: var(--ink); }
+  .dl-note { margin: 12px 0 0; font-size: 14px; color: var(--ink-2); max-width: 44em; }
+  .dl-note a { text-underline-offset: 2px; }
+
+  /* Screenshot framed like a sheet border. */
+  figure.shot {
+    margin: 56px 0 0; padding: 6px;
+    border: 1px solid var(--ink); background: var(--white);
+    box-shadow: 0 18px 40px -22px rgba(34, 38, 44, 0.45);
+  }
+  figure.shot img { display: block; width: 100%; border: 1px solid var(--line); }
+  figure.shot figcaption { padding: 8px 6px 2px; font-size: 13px; color: var(--ink-2); }
+
+  /* The four steps of using it, in order, so they are numbered the way the manual numbers steps. */
+  .steps { margin: 72px 0 0; counter-reset: step; }
+  .step {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 28px 44px;
+    align-items: start;
+    padding: 36px 0 44px;
+    border-top: 1.5px solid var(--ink);
+  }
+  .step h2 {
+    margin: 0 0 10px;
+    font-size: 24px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.2;
+  }
+  .step h2::before {
+    counter-increment: step;
+    content: "Step " counter(step) ":";
+    display: block;
+    font-family: var(--mono);
+    font-size: 13px; font-weight: 500; letter-spacing: 0;
+    color: var(--red);
+    margin-bottom: 6px;
+  }
+  .step p { margin: 0 0 10px; font-size: 16px; }
+  .step p:last-child { margin-bottom: 0; }
+  .step p.q { color: var(--ink-2); font-size: 15px; }
+  kbd {
+    font-family: var(--mono); font-size: 0.85em;
+    padding: 1px 6px 2px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px;
+    background: var(--white); white-space: nowrap;
+  }
+  .step figure { margin: 0; }
+  .step figure img {
+    display: block;
+    border: 1px solid var(--ink);
+    box-shadow: 0 14px 32px -20px rgba(34, 38, 44, 0.5);
+  }
+  .step figure.tall { display: flex; justify-content: center; }
+  .step figure.tall img { width: auto; max-height: 640px; }
+
+  /* Local data: one short block. */
+  .local { margin: 8px 0 0; padding-top: 36px; border-top: 1.5px solid var(--ink); max-width: 46em; }
+  .local h2 { margin: 0 0 10px; font-size: 20px; font-weight: 600; }
+  .local p { margin: 0 0 10px; font-size: 16px; }
+  .local p:last-child { margin-bottom: 0; color: var(--ink-2); font-size: 15px; }
+
+  /* Centreline: the dashed red line the app icon carries, as the one rule before the title block. */
+  .centreline { margin: 64px 0 0; height: 0; border: 0; border-top: 3px dashed var(--red); opacity: 0.85; }
+
+  /* Title block, as on every Van's page: right-aligned at the foot. */
+  .titleblock {
+    margin: 24px 0 0 auto; width: max-content; max-width: 100%;
+    display: grid; grid-auto-flow: column;
+    border: 1.5px solid var(--ink); background: var(--white);
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.2;
+  }
+  .titleblock > div {
+    padding: 6px 12px 7px; border-left: 1.5px solid var(--ink);
+    display: flex; gap: 8px; align-items: baseline; white-space: nowrap;
+  }
+  .titleblock > div:first-child { border-left: 0; }
+  .titleblock span { color: var(--ink-2); font-size: 10.5px; }
+  .titleblock b { font-weight: 500; }
+  .titleblock a { text-decoration: none; }
+  .titleblock a:hover { text-decoration: underline; }
+  .foot { margin: 18px 0 0; font-size: 13px; color: var(--ink-2); max-width: 52em; }
+
+  @media (max-width: 860px) {
+    .sheet { padding-top: 40px; }
+    .step { grid-template-columns: 1fr; gap: 20px; }
+    .step figure.tall { justify-content: flex-start; }
+    .step figure.tall img { max-height: 520px; }
+  }
+  @media (max-width: 560px) {
+    .titleblock { grid-auto-flow: row; width: 100%; }
+    .titleblock > div { border-left: 0; border-top: 1.5px solid var(--ink); white-space: normal; }
+    .titleblock > div:first-child { border-top: 0; }
+    .dl { min-width: 0; width: 100%; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .dl { transition: transform 120ms ease; }
+    .dl:active { transform: translateY(1px); }
+  }
+</style>
+</head>
+<body>
+<main class="sheet">
+  <header class="head">
+    <img src="icon.svg" alt="" width="64" height="64">
+    <div>
+      <h1>Van's Builder Assistant</h1>
+      <p>For builders of Van's kit planes. Free, for Mac and Windows.</p>
+    </div>
+  </header>
+
+  <p class="lede">Track the build. Ask the manual.</p>
+  <p class="sub">The construction manuals with a checklist inside, notes where you need them, and answers that cite the page.</p>
+
+  <p class="callout"><b>NOTE:</b><span>Only the RV-12iS is supported at the moment. Support for other Van's models will be added based on interest, so say which one you are building.</span></p>
+
+  <nav class="downloads" aria-label="Downloads">
+    <a class="dl" id="dl-mac-arm" href="https://github.com/ymc9/vba-release/releases/download/v0.1.0/VansBuilderAssistant-0.1.0-arm64.dmg">Download for Mac<small>Apple silicon (M1 and later)</small></a>
+    <a class="dl" id="dl-mac-x64" href="https://github.com/ymc9/vba-release/releases/download/v0.1.0/VansBuilderAssistant-0.1.0-x64.dmg">Download for Mac<small>Intel</small></a>
+    <a class="dl" id="dl-win" href="https://github.com/ymc9/vba-release/releases/download/v0.1.0/VansBuilderAssistant-0.1.0-x64.exe">Download for Windows<small>64-bit installer</small></a>
+  </nav>
+  <p class="dl-note">Version <b id="dl-version">0.1.0</b>, released <span id="dl-date">09/23/2026</span>. Not sure which Mac you have? Open the Apple menu, choose About This Mac, and look at the Chip line. All versions and release notes are on the <a href="https://github.com/ymc9/vba-release/releases">releases page</a>.</p>
+
+  <figure class="shot">
+    <img src="screenshot.jpg" alt="The app showing page 12iS/U-03 of the empennage fairings section: the manual page in the middle with Figure 1 outlined, the list of pages on the left, and the six steps of the page on the right." width="1800" height="1102">
+    <figcaption>Section 12iS/U, page 03. The page as Van's drew it in the middle, its steps listed beside it.</figcaption>
+  </figure>
+
+  <section class="steps" aria-label="How it works">
+    <div class="step">
+      <div>
+        <h2>Import the manuals</h2>
+        <p>Point it at the construction manual PDFs you downloaded from Van's, one file per section. Each page is read into its steps, figures and notes, so the section appears in the list with a progress bar the moment it is parsed.</p>
+        <p>When Van's publishes a new revision, import it over the old one. Your progress and notes carry across.</p>
+        <p class="q">The manuals are not included. Van's provides them to kit owners.</p>
+      </div>
+      <figure>
+        <img src="step-import.jpg" alt="The Manuals pane with sections 06 to 11 listed, each with a progress bar, and the status bar reading Parsing 7/7 12iS-U_12iS.pdf, page 2/12." width="1040" height="826">
+      </figure>
+    </div>
+
+    <div class="step">
+      <div>
+        <h2>Track the steps</h2>
+        <p>Mark a step done, in progress or skipped, from the list or by clicking it on the drawing. The date is kept, and the time it took if you want to log it.</p>
+        <p>Notes attach to a step, a figure or a whole page, and show up right under the text they belong to.</p>
+      </div>
+      <figure class="tall">
+        <img src="step-track.jpg" alt="The step list for page 12iS/U-03: steps 1 to 3 marked Done with dates and minutes, a note under step 2, and step 4 In progress." width="765" height="900">
+      </figure>
+    </div>
+
+    <div class="step">
+      <div>
+        <h2>Ask about a step or a drawing</h2>
+        <p>Select a step or a figure and ask. The AI assistant searches the manuals for related steps, reads the drawings, and looks through builder sites such as VAF, the Van's site, EAA and Kitplanes. Answers cite their sources, and a citation jumps back to the exact step.</p>
+        <p>Like any AI, it can be confidently wrong. Treat an answer as a pointer, and check it against the manual page it cites and your own judgement before you drill, cut or rivet.</p>
+        <p class="q">This part is optional and runs on your own Anthropic API key, entered in Settings. Without a key, everything else works.</p>
+      </div>
+      <figure class="tall">
+        <img src="step-ask.jpg" alt="The Ask pane: a question about getting the fairing flush with the skin in step 4, and an answer that cites 12iS/U-03 Step 4 and Step 1." width="765" height="900">
+      </figure>
+    </div>
+
+    <div class="step">
+      <div>
+        <h2>Search everything</h2>
+        <p>Press <kbd>⌘K</kbd> on a Mac or <kbd>Ctrl+K</kbd> on Windows from anywhere in the app. One search box covers the manuals, your notes and your past conversations, and a hit opens the page or the thread it came from.</p>
+        <p><kbd>⌘F</kbd> (<kbd>Ctrl+F</kbd>) finds text within the open section, including on pages Van's shipped as pure drawings.</p>
+      </div>
+      <figure>
+        <img src="step-search.jpg" alt="The search palette with the query smooth transition: two hits in the manuals and one in a conversation." width="1300" height="660">
+      </figure>
+    </div>
+  </section>
+
+  <section class="local">
+    <h2>What stays on your computer</h2>
+    <p>The manuals, your progress and your notes live in a folder on your machine. Nothing is uploaded and there is no account. The only thing that leaves your computer is a question you choose to ask, which goes to Anthropic with the page it concerns.</p>
+    <p>Free for any Van's builder. Questions, bugs and requests for other models: use the contact details below.</p>
+  </section>
+
+  <hr class="centreline">
+
+  <footer>
+    <div class="titleblock" aria-label="Release details">
+      <div><span>APP</span><b>Van's Builder Assistant</b></div>
+      <div><span>REVISION</span><b id="tb-rev">0.1.0</b></div>
+      <div><span>DATE</span><b id="tb-date">09/23/2026</b></div>
+      <div><span>CONTACT</span><b><a href="mailto:yiming@whimslab.io">yiming@whimslab.io</a></b></div>
+      <div><span>VAF</span><b><a href="https://vansairforce.net/members/ymc9.37658/">ymc9</a></b></div>
+    </div>
+    <p class="foot">Van's Builder Assistant is a hobby project by one builder, provided as is and without warranty of any kind. The creator assumes no liability for how it is used or for the outcome of any work done with it; the manuals, Van's Aircraft and your own judgement remain the authority on your build. It is not affiliated with Van's Aircraft, Inc. RV-12iS is a trademark of Van's Aircraft.</p>
+  </footer>
+</main>
+
+<script>
+  // The buttons link straight to the files of the release current when this page was written
+  // (releases/latest/download/<file> needs the exact name). The releases API then points them at the
+  // newest release and adds the sizes; offline, the written links stand.
+  (async () => {
+    const mac = /Mac/.test(navigator.platform) || /Macintosh/.test(navigator.userAgent);
+    const win = /Win/.test(navigator.platform);
+    if (mac) document.getElementById("dl-mac-arm").classList.add("primary");
+    if (win) document.getElementById("dl-win").classList.add("primary");
+    try {
+      const r = await fetch("https://api.github.com/repos/ymc9/vba-release/releases/latest", { headers: { Accept: "application/vnd.github+json" } });
+      if (!r.ok) return;
+      const rel = await r.json();
+      const pick = (re) => rel.assets.find((a) => re.test(a.name));
+      const mb = (a) => (a.size / 1048576).toFixed(0) + " MB";
+      const set = (id, a, label) => {
+        if (!a) return;
+        const el = document.getElementById(id);
+        el.href = a.browser_download_url;
+        el.querySelector("small").textContent = label + ", " + mb(a);
+      };
+      set("dl-mac-arm", pick(/-arm64\.dmg$/), "Apple silicon (M1 and later)");
+      set("dl-mac-x64", pick(/-x64\.dmg$/), "Intel");
+      set("dl-win", pick(/\.exe$/), "64-bit installer");
+      const version = (rel.tag_name || "").replace(/^v/, "");
+      if (version) for (const id of ["tb-rev", "dl-version"]) document.getElementById(id).textContent = version;
+      if (rel.published_at) {
+        const d = new Date(rel.published_at).toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" });
+        for (const id of ["tb-date", "dl-date"]) document.getElementById(id).textContent = d;
+      }
+    } catch (e) {
+      // offline or rate limited: the written links stand
+    }
+  })();
+</script>
+</body>
+</html>
