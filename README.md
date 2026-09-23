@@ -26,8 +26,8 @@ The source code lives in a private repository.
 
 ## Feedback
 
-Bugs, questions and requests for other models: open an [issue](../../issues) here, email
-yiming@whimslab.io, or find [ymc9 on VAF](https://vansairforce.net/members/ymc9.37658/).
+Bugs, questions and requests for other models: open an [issue](../../issues) here, or find
+[ymc9 on VAF](https://vansairforce.net/members/ymc9.37658/).
 
 Van's Builder Assistant is a hobby project by one builder, provided as is and without warranty of any
 kind; the creator assumes no liability for its use. It is not affiliated with Van's Aircraft, Inc.
