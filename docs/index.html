@@ -294,6 +294,21 @@
   // The buttons link straight to the files of the release current when this page was written
   // (releases/latest/download/<file> needs the exact name). The releases API then points them at the
   // newest release and adds the sizes; offline, the written links stand.
+  // Every download click is a GA event: platform from the button, version and file from its link.
+  const PLATFORMS = { "dl-mac-arm": "mac_arm64", "dl-mac-x64": "mac_x64", "dl-win": "windows_x64" };
+  for (const [id, platform] of Object.entries(PLATFORMS)) {
+    document.getElementById(id).addEventListener("click", (ev) => {
+      const href = ev.currentTarget.href;
+      if (typeof gtag !== "function") return;
+      gtag("event", "download_click", {
+        platform,
+        app_version: document.getElementById("dl-version").textContent,
+        file_name: href.slice(href.lastIndexOf("/") + 1),
+        link_url: href,
+        transport_type: "beacon",
+      });
+    });
+  }
   (async () => {
     const mac = /Mac/.test(navigator.platform) || /Macintosh/.test(navigator.userAgent);
     const win = /Win/.test(navigator.platform);
