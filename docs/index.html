@@ -6,14 +6,14 @@
 <title>Van's Builder Assistant</title>
 <meta name="description" content="A desktop app for building a Van's kit plane: import the manuals, track every step, keep notes, ask questions about any step or drawing, search everything. RV-12iS supported today. Your data stays on your computer.">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-D4D9J86H4R"></script>
+<!-- PostHog (cookieless: nothing is stored in the browser) -->
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-D4D9J86H4R');
+  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug getPageViewId captureTraceFeedback captureTraceMetric".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+  posthog.init("phc_n56Jd3GbpXGZh5Weif43tapHbp7EfJdregWCacCAGa2A", {
+    api_host: "https://us.i.posthog.com",
+    persistence: "memory",
+    person_profiles: "identified_only",
+  });
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -294,19 +294,18 @@
   // The buttons link straight to the files of the release current when this page was written
   // (releases/latest/download/<file> needs the exact name). The releases API then points them at the
   // newest release and adds the sizes; offline, the written links stand.
-  // Every download click is a GA event: platform from the button, version and file from its link.
+  // Every download click is a PostHog event: platform from the button, version and file from its link.
   const PLATFORMS = { "dl-mac-arm": "mac_arm64", "dl-mac-x64": "mac_x64", "dl-win": "windows_x64" };
   for (const [id, platform] of Object.entries(PLATFORMS)) {
     document.getElementById(id).addEventListener("click", (ev) => {
       const href = ev.currentTarget.href;
-      if (typeof gtag !== "function") return;
-      gtag("event", "download_click", {
+      if (!window.posthog || typeof posthog.capture !== "function") return;
+      posthog.capture("download_click", {
         platform,
         app_version: document.getElementById("dl-version").textContent,
         file_name: href.slice(href.lastIndexOf("/") + 1),
         link_url: href,
-        transport_type: "beacon",
-      });
+      }, { send_instantly: true, transport: "sendBeacon" });
     });
   }
   (async () => {
